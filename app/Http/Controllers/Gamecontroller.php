@@ -20,12 +20,21 @@ class GameController extends Controller
         return openssl_decrypt($decoded, 'AES-128-ECB', $this->secret, OPENSSL_RAW_DATA);
     }
 
+    private function corsHeaders(): array
+    {
+        return [
+            'Access-Control-Allow-Origin' => '*',
+            'Access-Control-Allow-Methods' => 'POST, GET, OPTIONS',
+            'Access-Control-Allow-Headers' => 'Content-Type, Authorization',
+        ];
+    }
+
     public function iniciarJogo()
     {
         $words = file(app_path('words.txt'), FILE_IGNORE_NEW_LINES);
 
         if (!$words || count($words) === 0) {
-            return response()->json(['error' => 'Nenhuma palavra encontrada.'], 404);
+            return response()->json(['error' => 'Nenhuma palavra encontrada.'], 404, $this->corsHeaders());
         }
 
         $word = strtoupper(trim($words[array_rand($words)]));
@@ -35,7 +44,7 @@ class GameController extends Controller
             'idJogo' => $idJogo,
             'tamanhoPalavra' => 5,
             'tentativasMaximas' => 6
-        ]);
+        ], 200, $this->corsHeaders());
     }
 
     public function validarTentativa(Request $request)
@@ -48,7 +57,7 @@ class GameController extends Controller
         $word = $this->decrypt($request->idJogo);
 
         if (!$word) {
-            return response()->json(['error' => 'Jogo não encontrado.'], 404);
+            return response()->json(['error' => 'Jogo não encontrado.'], 404, $this->corsHeaders());
         }
 
         $guess = strtoupper($request->palavra);
@@ -73,6 +82,6 @@ class GameController extends Controller
             'venceu' => $guess === $word,
             'tentativasRestantes' => 5,
             'palavraValida' => true
-        ]);
+        ], 200, $this->corsHeaders());
     }
 }
