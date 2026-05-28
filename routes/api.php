@@ -4,7 +4,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\GameController;
 
 Route::options('/{any}', function() {
-    return response()->json([], 200, [
+    return response('', 200, [
         'Access-Control-Allow-Origin' => '*',
         'Access-Control-Allow-Methods' => 'POST, GET, OPTIONS',
         'Access-Control-Allow-Headers' => 'Content-Type, Authorization',
@@ -12,4 +12,6 @@ Route::options('/{any}', function() {
 })->where('any', '.*');
 
 Route::post('/jogos', [GameController::class, 'iniciarJogo']);
+Route::post('/jogos/{idJogo}/tentativas', [GameController::class, 'validarTentativa']);
+Route::post('/iniciar-jogo', [GameController::class, 'iniciarJogo']);
 Route::post('/validar-tentativa', [GameController::class, 'validarTentativa']);
