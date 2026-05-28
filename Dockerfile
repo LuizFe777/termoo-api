@@ -44,6 +44,9 @@ RUN composer install --no-dev --optimize-autoloader
 # Permissões
 RUN chmod -R 775 storage bootstrap/cache
 
+# Gera .env e APP_KEY se não existir
+RUN cp .env.example .env && php artisan key:generate
+
 # Porta usada pelo Render
 EXPOSE 10000
 
