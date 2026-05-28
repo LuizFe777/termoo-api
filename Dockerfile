@@ -1,6 +1,5 @@
 FROM php:8.4-cli
 
-# Instala dependências do sistema
 RUN apt-get update && apt-get install -y \
     git \
     curl \
@@ -13,12 +12,11 @@ RUN apt-get update && apt-get install -y \
     libxml2-dev \
     libzip-dev \
     sqlite3 \
-    libsqlite3-dev
+    libsqlite3-dev \
+    && rm -rf /var/lib/apt/lists/*
 
-# Configura GD
 RUN docker-php-ext-configure gd --with-freetype --with-jpeg
 
-# Instala extensões PHP necessárias
 RUN docker-php-ext-install \
     pdo \
     pdo_sqlite \
@@ -29,26 +27,22 @@ RUN docker-php-ext-install \
     gd \
     zip
 
-# Instala Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
-# Diretório da aplicação
 WORKDIR /app
 
-# Copia arquivos
 COPY . .
 
-# Instala dependências do Laravel
 RUN composer install --no-dev --optimize-autoloader
 
-# Permissões
 RUN chmod -R 775 storage bootstrap/cache
 
-# Gera .env e APP_KEY se não existir
-RUN cp .env.example .env && php artisan key:generate
+RUN cp .env.example .env \
+    && sed -i 's/SESSION_DRIVER=database/SESSION_DRIVER=file/' .env \
+    && sed -i 's/QUEUE_CONNECTION=database/QUEUE_CONNECTION=sync/' .env \
+    && sed -i 's/CACHE_STORE=database/CACHE_STORE=file/' .env \
+    && php artisan key:generate
 
-# Porta usada pelo Render
 EXPOSE 10000
 
-# Inicializa Laravel
-CMD php artisan serve --host=0.0.0.0 --port=10000
+CMD ["php", "artisan", "serve", "--host=0.0.0.0", "--port=10000"]
